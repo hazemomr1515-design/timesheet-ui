@@ -4,55 +4,56 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Timesheet Mock</title>
-    <!-- Ant Design CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/antd@5/dist/reset.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/antd/5.16.6/reset.min.css" integrity="sha512-gM1y3WnQd9QJp7RBqioYIovq8K2rWnT2mHVbVybkM8L2qj3h5c0S1m2m6aTZ2x1Nwq2b3zl0n3FJz9YwIu7YyA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- React + ReactDOM (UMD) -->
+    <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+
+    <!-- Babel لتشغيل JSX مباشرة على المتصفح -->
+    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7/babel.min.js"></script>
+
+    <!-- Ant Design (UMD) + CSS ثابت -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/antd@5/dist/reset.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/antd@5/dist/antd.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/antd@5/dist/antd.min.js"></script>
+
+    <!-- dayjs -->
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+
+    <!-- i18next + react-i18next (UMD) -->
+    <script src="https://cdn.jsdelivr.net/npm/i18next@23/i18next.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/react-i18next@13/dist/umd/react-i18next.production.min.js"></script>
+
     <style>
-      body { padding: 24px; }
+      body { padding: 24px; background:#f5f5f5; }
+      .container { max-width: 1200px; margin: 0 auto; }
       .ant-layout { background: #fff; }
     </style>
-    <!-- React + ReactDOM + Babel (لتشغيل JSX مباشرة) -->
-    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <!-- Ant Design + dayjs -->
-    <script src="https://unpkg.com/antd@5/dist/antd.min.js"></script>
-    <script src="https://unpkg.com/dayjs@1/dayjs.min.js"></script>
-    <!-- i18next -->
-    <script src="https://unpkg.com/i18next@23/i18next.min.js"></script>
-    <script src="https://unpkg.com/react-i18next@13/dist/umd/react-i18next.development.js"></script>
   </head>
   <body>
     <div id="root"></div>
 
+    <!-- App -->
     <script type="text/babel">
       const { useEffect, useMemo, useState } = React;
-      const { ConfigProvider, Layout, Typography, Space, Segmented, DatePicker, Select, Input, Table, Button, Checkbox, InputNumber, message, theme } = antd;
+      const { ConfigProvider, Layout, Typography, Space, Segmented, Input, Select, Table, Button, InputNumber, Checkbox, theme, message } = antd;
       const { initReactI18next, useTranslation } = window['reactI18next'];
 
-      // i18n init
+      // Init i18n
       i18next.use(initReactI18next).init({
         resources: {
           ar: { translation: {
             appTitle:'نموذج التايم شيت', language:'اللغة', arabic:'عربي', english:'English',
-            week:'الأسبوع', governorate:'المحافظة', refType:'نوع المرجع', refNo:'رقم المرجع',
-            byCalling:'By Calling', timeEntries:'Time Entries', timeOffRequests:'Time Off Requests',
             entityCode:'كود الجهة', entityType:'نوع الجهة', entityName:'اسم الجهة',
-            project:'المشروع', activity:'النشاط', hours:'الساعات', billable:'مفوترة',
-            overtime:'وقت إضافي', comment:'ملاحظة', addRow:'إضافة صف', remove:'حذف',
-            timeOff:'إجازة', timeOffType:'نوع الإجازة', timeOffApproval:'رقم موافقة الإجازة',
-            summary:'الملخص', totalWeek:'إجمالي الأسبوع',
+            project:'المشروع', activity:'النشاط', hours:'الساعات', billable:'مفوترة', overtime:'وقت إضافي',
+            comment:'ملاحظة', addRow:'إضافة صف', remove:'حذف', summary:'الملخص', totalWeek:'إجمالي الأسبوع',
             sun:'الأحد', mon:'الإثنين', tue:'الثلاثاء', wed:'الأربعاء', thu:'الخميس'
           }},
           en: { translation: {
             appTitle:'Timesheet Mock', language:'Language', arabic:'Arabic', english:'English',
-            week:'Week', governorate:'Governorate', refType:'Reference Type', refNo:'Reference No.',
-            byCalling:'By Calling', timeEntries:'Time Entries', timeOffRequests:'Time Off Requests',
             entityCode:'Entity Code', entityType:'Entity Type', entityName:'Entity Name',
-            project:'Project', activity:'Activity', hours:'Hours', billable:'Billable',
-            overtime:'Overtime', comment:'Comment', addRow:'Add Row', remove:'Remove',
-            timeOff:'Time Off', timeOffType:'Time Off Type', timeOffApproval:'Time Off Approval No.',
-            summary:'Summary', totalWeek:'Total Week',
+            project:'Project', activity:'Activity', hours:'Hours', billable:'Billable', overtime:'Overtime',
+            comment:'Comment', addRow:'Add Row', remove:'Remove', summary:'Summary', totalWeek:'Total Week',
             sun:'Sun', mon:'Mon', tue:'Tue', wed:'Wed', thu:'Thu'
           }}
         },
@@ -60,22 +61,9 @@
       });
 
       const PROJECTS = [
-        'Government Payment System','Government Fiscal Management Information System','Payroll','Hyperion',
-        'Cash Collection','GOV-POS','Billing Management System','مشروع التحصيل الإلكتروني للمصروفات الجامعية',
-        'Bitumen','Cash - Out','Fleet Management System - Digital Coupons (Cooperation Petroleum)',
-        'Fleet Management System - Digital Coupons (Misr Petroleum)','Fuel Subsidy Management System',
-        'Liquefied Petroleum Gas','Ministry of Planning','Takaful and Karama','Farmer Subsidy System',
-        'Go Green','Core Taxation','Tax Appeal Core System','Case Management & Power BI','E-Declaration',
-        'E-Invoice - Employees','E-Receipt','Corporate Payment Services','Electricity Collection',
-        'Natural Gas Collection','Tourism App','PPO Traffic','ATM Network','PPO Family','PPO Criminal',
-        'Fertilizer Distribution and Management System','Supplier Pay Governance Service',
-        'E-Receipt (E-Tax)','E-Receipt (Delta)','Taxi Sharm','Cash Collection - Central Lab',
-        'Cash Collection - NOSI','Khales POS Acceptance','Network Endpoints Enrollment to SD-WAN Technology',
-        'Egypt Make','ABE POS Acceptance','حوكمة: إجراءات صرف حوافز اللجان المشتركة','خدمات مصر',
-        'Automotive Industry Development Program of Egypt','Count Big','Disabilities','Speech to Text',
-        'Seeds Disruption Management System','Private Education Digital Collection','Time Off Requests','Time Entries'
+        'Government Payment System','Payroll','Hyperion','Cash Collection','GOV-POS',
+        'مشروع التحصيل الإلكتروني للمصروفات الجامعية','Core Taxation','E-Receipt','Time Entries'
       ];
-
       const dayKeys = ['sun','mon','tue','wed','thu'];
       const activities = ['Development','Support','Meeting','Training','Analysis','Testing'];
 
@@ -83,7 +71,7 @@
 
       async function loadEntities() {
         try {
-          const res = await fetch('entities.csv'); // ملف بجذر الريبو
+          const res = await fetch('./entities.csv'); // نفس جذر الريبو
           if (!res.ok) return [];
           const text = await res.text();
           const [headerLine, ...rows] = text.split(/\r?\n/).filter(Boolean);
@@ -100,10 +88,9 @@
       function App(){
         const { t, i18n } = useTranslation();
         const [lang, setLang] = useState('ar'); useRTL(lang);
-        const [week, setWeek] = useState(dayjs());
         const [rows, setRows] = useState([{ key: Math.random().toString(36).slice(2), project: undefined, activity: undefined, days: {sun:{},mon:{},tue:{},wed:{},thu:{}} }]);
-        const [entityCode, setEntityCode] = useState(''); const [entityType, setEntityType] = useState(''); const [entityName, setEntityName] = useState('');
         const [entities, setEntities] = useState([]);
+        const [entityCode, setEntityCode] = useState(''); const [entityType, setEntityType] = useState(''); const [entityName, setEntityName] = useState('');
 
         useEffect(()=>{ i18n.changeLanguage(lang); },[lang]);
         useEffect(()=>{ loadEntities().then(setEntities); },[]);
@@ -141,7 +128,7 @@
             { title: t('activity'), dataIndex:'activity', width: 180, render: (_ , rec) => (
               <Select style={{ width: 160 }} placeholder={t('activity')} value={rec.activity}
                 onChange={(v)=>updateRow(rec.key, { activity: v })}
-                options={activities.map(a=>({label:a, value:a}))}/>
+                options={['Development','Support','Meeting','Training','Analysis','Testing'].map(a=>({label:a, value:a}))}/>
             )},
             ...dayCols,
             { title:'', key:'actions', width:100, fixed:'right', render: (_ , rec) => (<Button danger onClick={()=>removeRow(rec.key)}>{t('remove')}</Button>) }
@@ -152,49 +139,46 @@
         const isRTL = lang === 'ar';
 
         return (
-          <ConfigProvider direction={isRTL?'rtl':'ltr'} theme={{ algorithm: theme.defaultAlgorithm }}>
-            <Layout style={{ minHeight: '100vh', padding: 24 }}>
-              <Typography.Title level={3}>{t('appTitle')}</Typography.Title>
+          <div className="container">
+            <ConfigProvider direction={isRTL?'rtl':'ltr'} theme={{ algorithm: theme.defaultAlgorithm }}>
+              <Layout style={{ minHeight: '100vh', padding: 24 }}>
+                <Typography.Title level={3}>{t('appTitle')}</Typography.Title>
 
-              <Space align="center" wrap size="large" style={{ marginBottom: 16 }}>
-                <Space>
-                  <Typography.Text strong>{t('language')}</Typography.Text>
-                  <Segmented value={lang} onChange={(v)=>setLang(v)} options={[
-                    {label:t('arabic'), value:'ar'}, {label:t('english'), value:'en'}
-                  ]}/>
+                <Space align="center" wrap size="large" style={{ marginBottom: 16 }}>
+                  <Space>
+                    <Typography.Text strong>{t('language')}</Typography.Text>
+                    <Segmented value={lang} onChange={(v)=>setLang(v)} options={[
+                      {label:t('arabic'), value:'ar'}, {label:t('english'), value:'en'}
+                    ]}/>
+                  </Space>
+
+                  <Space>
+                    <Typography.Text strong>{t('entityCode')}</Typography.Text>
+                    <Input style={{ width: 160 }} value={entityCode} onChange={(e)=>setEntityCode(e.target.value)} placeholder="مثال: 101" />
+                  </Space>
+                  <Space>
+                    <Typography.Text strong>{t('entityType')}</Typography.Text>
+                    <Input style={{ width: 220 }} value={entityType} readOnly />
+                  </Space>
+                  <Space>
+                    <Typography.Text strong>{t('entityName')}</Typography.Text>
+                    <Input style={{ width: 320 }} value={entityName} readOnly />
+                  </Space>
                 </Space>
 
-                <Space>
-                  <Typography.Text strong>{t('week')}</Typography.Text>
-                  <DatePicker picker="week" value={week} onChange={(v)=>setWeek(v)} />
-                </Space>
+                <div style={{ marginBottom: 12 }}>
+                  <Button type="primary" onClick={addRow}>{t('addRow')}</Button>
+                </div>
 
-                <Space>
-                  <Typography.Text strong>{t('entityCode')}</Typography.Text>
-                  <Input style={{ width: 160 }} value={entityCode} onChange={(e)=>setEntityCode(e.target.value)} placeholder="مثال: 101" />
-                </Space>
-                <Space>
-                  <Typography.Text strong>{t('entityType')}</Typography.Text>
-                  <Input style={{ width: 220 }} value={entityType} readOnly />
-                </Space>
-                <Space>
-                  <Typography.Text strong>{t('entityName')}</Typography.Text>
-                  <Input style={{ width: 320 }} value={entityName} readOnly />
-                </Space>
-              </Space>
+                <Table dataSource={rows} columns={columns} pagination={false} scroll={{ x: 1200 }} rowKey="key" />
 
-              <div style={{ marginBottom: 12 }}>
-                <Button type="primary" onClick={addRow}>{t('addRow')}</Button>
-              </div>
-
-              <Table dataSource={rows} columns={columns} pagination={false} scroll={{ x: 1200 }} rowKey="key" />
-
-              <div style={{ marginTop: 16 }}>
-                <Typography.Title level={4}>{t('summary')}</Typography.Title>
-                <Typography.Text>{t('totalWeek')}: {totalWeek}</Typography.Text>
-              </div>
-            </Layout>
-          </ConfigProvider>
+                <div style={{ marginTop: 16 }}>
+                  <Typography.Title level={4}>{t('summary')}</Typography.Title>
+                  <Typography.Text>{t('totalWeek')}: {totalWeek}</Typography.Text>
+                </div>
+              </Layout>
+            </ConfigProvider>
+          </div>
         );
       }
 
