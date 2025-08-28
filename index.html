@@ -1,188 +1,232 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Timesheet Mock</title>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Timesheet Mock (Plain)</title>
+  <style>
+    :root { --bg:#f5f5f5; --card:#fff; --text:#222; --muted:#777; --primary:#1677ff; }
+    body { margin:0; font-family:system-ui,Segoe UI,Arial; background:var(--bg); color:var(--text); }
+    .container { max-width: 1100px; margin: 24px auto; padding: 0 16px; }
+    .card { background: var(--card); border-radius: 10px; padding: 16px 16px 8px; box-shadow: 0 2px 10px rgba(0,0,0,.05); }
+    h1 { margin: 0 0 12px; font-size: 22px; }
+    .row { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
+    .field { display:flex; flex-direction:column; gap:6px; min-width:180px; }
+    label { font-size: 13px; color: var(--muted); }
+    input, select, textarea { padding:10px; border:1px solid #ddd; border-radius:8px; font-size:14px; background:#fff; width:100%; }
+    textarea { resize: vertical; min-height: 40px; }
+    .btn { background:var(--primary); color:#fff; border:none; padding:10px 14px; border-radius:8px; cursor:pointer; }
+    .btn-outline { background:#fff; color:var(--primary); border:1px solid var(--primary); }
+    table { width:100%; border-collapse: collapse; font-size:14px; }
+    th, td { border-bottom:1px solid #eee; padding:8px; vertical-align:top; }
+    th { text-align: start; color:var(--muted); font-weight:600; }
+    tfoot td { font-weight:700; }
+    .switch { display:inline-flex; gap:8px; border:1px solid #ddd; border-radius:8px; padding:4px; }
+    .switch button { border:none; padding:6px 10px; border-radius:6px; background:#fff; cursor:pointer; }
+    .switch .active { background: var(--primary); color:#fff; }
+    .muted { color: var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="row" style="justify-content:space-between; align-items:center;">
+        <h1 id="title">نموذج التايم شيت</h1>
+        <div class="switch" aria-label="language">
+          <button id="btn-ar" class="active">عربي</button>
+          <button id="btn-en">English</button>
+        </div>
+      </div>
 
-    <!-- React + ReactDOM (UMD) -->
-    <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js" crossorigin></script>
-    <script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+      <div class="row">
+        <div class="field" style="min-width:120px">
+          <label id="l-entityCode">كود الجهة</label>
+          <input id="entityCode" placeholder="مثال: 101"/>
+        </div>
+        <div class="field" style="min-width:200px">
+          <label id="l-entityType">نوع الجهة</label>
+          <input id="entityType" readonly/>
+        </div>
+        <div class="field" style="min-width:260px; flex:1">
+          <label id="l-entityName">اسم الجهة</label>
+          <input id="entityName" readonly/>
+        </div>
+      </div>
 
-    <!-- Babel لتشغيل JSX مباشرة على المتصفح -->
-    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7/babel.min.js"></script>
+      <div class="row">
+        <div class="field" style="min-width:260px">
+          <label id="l-project">المشروع</label>
+          <select id="project"></select>
+        </div>
+        <div class="field" style="min-width:200px">
+          <label id="l-activity">النشاط</label>
+          <select id="activity">
+            <option>Development</option><option>Support</option><option>Meeting</option>
+            <option>Training</option><option>Analysis</option><option>Testing</option>
+          </select>
+        </div>
+      </div>
 
-    <!-- Ant Design (UMD) + CSS ثابت -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/antd@5/dist/reset.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/antd@5/dist/antd.min.css" />
-    <script src="https://cdn.jsdelivr.net/npm/antd@5/dist/antd.min.js"></script>
-
-    <!-- dayjs -->
-    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
-
-    <!-- i18next + react-i18next (UMD) -->
-    <script src="https://cdn.jsdelivr.net/npm/i18next@23/i18next.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/react-i18next@13/dist/umd/react-i18next.production.min.js"></script>
-
-    <style>
-      body { padding: 24px; background:#f5f5f5; }
-      .container { max-width: 1200px; margin: 0 auto; }
-      .ant-layout { background: #fff; }
-    </style>
-  </head>
-  <body>
-    <div id="root"></div>
-
-    <!-- App -->
-    <script type="text/babel">
-      const { useEffect, useMemo, useState } = React;
-      const { ConfigProvider, Layout, Typography, Space, Segmented, Input, Select, Table, Button, InputNumber, Checkbox, theme, message } = antd;
-      const { initReactI18next, useTranslation } = window['reactI18next'];
-
-      // Init i18n
-      i18next.use(initReactI18next).init({
-        resources: {
-          ar: { translation: {
-            appTitle:'نموذج التايم شيت', language:'اللغة', arabic:'عربي', english:'English',
-            entityCode:'كود الجهة', entityType:'نوع الجهة', entityName:'اسم الجهة',
-            project:'المشروع', activity:'النشاط', hours:'الساعات', billable:'مفوترة', overtime:'وقت إضافي',
-            comment:'ملاحظة', addRow:'إضافة صف', remove:'حذف', summary:'الملخص', totalWeek:'إجمالي الأسبوع',
-            sun:'الأحد', mon:'الإثنين', tue:'الثلاثاء', wed:'الأربعاء', thu:'الخميس'
-          }},
-          en: { translation: {
-            appTitle:'Timesheet Mock', language:'Language', arabic:'Arabic', english:'English',
-            entityCode:'Entity Code', entityType:'Entity Type', entityName:'Entity Name',
-            project:'Project', activity:'Activity', hours:'Hours', billable:'Billable', overtime:'Overtime',
-            comment:'Comment', addRow:'Add Row', remove:'Remove', summary:'Summary', totalWeek:'Total Week',
-            sun:'Sun', mon:'Mon', tue:'Tue', wed:'Wed', thu:'Thu'
-          }}
-        },
-        lng: 'ar', fallbackLng: 'en', interpolation: { escapeValue: false }
-      });
-
-      const PROJECTS = [
-        'Government Payment System','Payroll','Hyperion','Cash Collection','GOV-POS',
-        'مشروع التحصيل الإلكتروني للمصروفات الجامعية','Core Taxation','E-Receipt','Time Entries'
-      ];
-      const dayKeys = ['sun','mon','tue','wed','thu'];
-      const activities = ['Development','Support','Meeting','Training','Analysis','Testing'];
-
-      function useRTL(lang){ useEffect(()=>{ document.dir = lang==='ar'?'rtl':'ltr'; document.documentElement.lang = lang; },[lang]); }
-
-      async function loadEntities() {
-        try {
-          const res = await fetch('./entities.csv'); // نفس جذر الريبو
-          if (!res.ok) return [];
-          const text = await res.text();
-          const [headerLine, ...rows] = text.split(/\r?\n/).filter(Boolean);
-          const header = headerLine.split(',');
-          const idx = {
-            code: header.findIndex(h=>h.trim().toLowerCase()==='code'),
-            type: header.findIndex(h=>h.trim().toLowerCase()==='type'),
-            name: header.findIndex(h=>h.trim().toLowerCase()==='name')
-          };
-          return rows.map(l=>{ const p=l.split(','); return {code:p[idx.code]?.trim()||'', type:p[idx.type]?.trim()||'', name:p[idx.name]?.trim()||''};}).filter(x=>x.code);
-        } catch { return []; }
-      }
-
-      function App(){
-        const { t, i18n } = useTranslation();
-        const [lang, setLang] = useState('ar'); useRTL(lang);
-        const [rows, setRows] = useState([{ key: Math.random().toString(36).slice(2), project: undefined, activity: undefined, days: {sun:{},mon:{},tue:{},wed:{},thu:{}} }]);
-        const [entities, setEntities] = useState([]);
-        const [entityCode, setEntityCode] = useState(''); const [entityType, setEntityType] = useState(''); const [entityName, setEntityName] = useState('');
-
-        useEffect(()=>{ i18n.changeLanguage(lang); },[lang]);
-        useEffect(()=>{ loadEntities().then(setEntities); },[]);
-        useEffect(()=>{ if(!entityCode){ setEntityType(''); setEntityName(''); return; } const f=entities.find(e=>e.code===entityCode); setEntityType(f?.type||''); setEntityName(f?.name||''); },[entityCode,entities]);
-
-        function updateRow(k, patch){ setRows(r=>r.map(x=>x.key===k?{...x,...patch}:x)); }
-        function updateCell(k, d, patch){ setRows(r=>r.map(x=>x.key!==k?x:{...x, days:{...x.days, [d]:{...x.days[d], ...patch}}})); }
-        function addRow(){ setRows(r=>[...r,{ key: Math.random().toString(36).slice(2), project: undefined, activity: undefined, days:{sun:{},mon:{},tue:{},wed:{},thu:{}} }]); }
-        function removeRow(k){ setRows(r=>r.filter(x=>x.key!==k)); }
-
-        const columns = React.useMemo(()=>{
-          const dayCols = dayKeys.map(dk=>({
-            title: t(dk), key: dk, width: 180,
-            render: (_, rec) => {
-              const cell = rec.days[dk] || {};
-              return (
-                <Space direction="vertical" size={4} style={{ width: 160 }}>
-                  <InputNumber style={{ width: '100%' }} min={0} step={0.5} placeholder={t('hours')} value={cell.hours}
-                    onChange={(v)=>updateCell(rec.key, dk, { hours: Number(v??0) })} />
-                  <Space size={8}>
-                    <Checkbox checked={!!cell.billable} onChange={e=>updateCell(rec.key,dk,{billable:e.target.checked})}>{t('billable')}</Checkbox>
-                    <Checkbox checked={!!cell.overtime} onChange={e=>updateCell(rec.key,dk,{overtime:e.target.checked})}>{t('overtime')}</Checkbox>
-                  </Space>
-                  <Input.TextArea rows={1} placeholder={t('comment')} value={cell.comment} onChange={e=>updateCell(rec.key,dk,{comment:e.target.value})}/>
-                </Space>
-              );
-            }
-          }));
-          return [
-            { title: t('project'), dataIndex:'project', width: 260, render: (_ , rec) => (
-              <Select style={{ width: 240 }} showSearch placeholder={t('project')} value={rec.project}
-                onChange={(v)=>updateRow(rec.key, { project: v })}
-                options={PROJECTS.map(p=>({label:p, value:p}))}/>
-            )},
-            { title: t('activity'), dataIndex:'activity', width: 180, render: (_ , rec) => (
-              <Select style={{ width: 160 }} placeholder={t('activity')} value={rec.activity}
-                onChange={(v)=>updateRow(rec.key, { activity: v })}
-                options={['Development','Support','Meeting','Training','Analysis','Testing'].map(a=>({label:a, value:a}))}/>
-            )},
-            ...dayCols,
-            { title:'', key:'actions', width:100, fixed:'right', render: (_ , rec) => (<Button danger onClick={()=>removeRow(rec.key)}>{t('remove')}</Button>) }
-          ];
-        }, [lang]);
-
-        const totalWeek = useMemo(()=> rows.reduce((s,r)=> s + dayKeys.reduce((x,d)=> x + (r.days[d]?.hours || 0),0),0), [rows]);
-        const isRTL = lang === 'ar';
-
-        return (
-          <div className="container">
-            <ConfigProvider direction={isRTL?'rtl':'ltr'} theme={{ algorithm: theme.defaultAlgorithm }}>
-              <Layout style={{ minHeight: '100vh', padding: 24 }}>
-                <Typography.Title level={3}>{t('appTitle')}</Typography.Title>
-
-                <Space align="center" wrap size="large" style={{ marginBottom: 16 }}>
-                  <Space>
-                    <Typography.Text strong>{t('language')}</Typography.Text>
-                    <Segmented value={lang} onChange={(v)=>setLang(v)} options={[
-                      {label:t('arabic'), value:'ar'}, {label:t('english'), value:'en'}
-                    ]}/>
-                  </Space>
-
-                  <Space>
-                    <Typography.Text strong>{t('entityCode')}</Typography.Text>
-                    <Input style={{ width: 160 }} value={entityCode} onChange={(e)=>setEntityCode(e.target.value)} placeholder="مثال: 101" />
-                  </Space>
-                  <Space>
-                    <Typography.Text strong>{t('entityType')}</Typography.Text>
-                    <Input style={{ width: 220 }} value={entityType} readOnly />
-                  </Space>
-                  <Space>
-                    <Typography.Text strong>{t('entityName')}</Typography.Text>
-                    <Input style={{ width: 320 }} value={entityName} readOnly />
-                  </Space>
-                </Space>
-
-                <div style={{ marginBottom: 12 }}>
-                  <Button type="primary" onClick={addRow}>{t('addRow')}</Button>
-                </div>
-
-                <Table dataSource={rows} columns={columns} pagination={false} scroll={{ x: 1200 }} rowKey="key" />
-
-                <div style={{ marginTop: 16 }}>
-                  <Typography.Title level={4}>{t('summary')}</Typography.Title>
-                  <Typography.Text>{t('totalWeek')}: {totalWeek}</Typography.Text>
-                </div>
-              </Layout>
-            </ConfigProvider>
+      <div class="row">
+        <div class="field" style="flex:1">
+          <label class="muted" id="l-grid">ساعات الأسبوع</label>
+          <div style="overflow:auto">
+            <table id="grid">
+              <thead>
+                <tr>
+                  <th id="h-sun">الأحد</th>
+                  <th id="h-mon">الإثنين</th>
+                  <th id="h-tue">الثلاثاء</th>
+                  <th id="h-wed">الأربعاء</th>
+                  <th id="h-thu">الخميس</th>
+                  <th id="h-comment">ملاحظة</th>
+                </tr>
+              </thead>
+              <tbody id="grid-body">
+                <tr>
+                  <td><input type="number" min="0" step="0.5" class="inp-hours"/></td>
+                  <td><input type="number" min="0" step="0.5" class="inp-hours"/></td>
+                  <td><input type="number" min="0" step="0.5" class="inp-hours"/></td>
+                  <td><input type="number" min="0" step="0.5" class="inp-hours"/></td>
+                  <td><input type="number" min="0" step="0.5" class="inp-hours"/></td>
+                  <td><textarea placeholder=""></textarea></td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="6" id="total">إجمالي الأسبوع: 0</td>
+                </tr>
+              </tfoot>
+            </table>
           </div>
-        );
-      }
+        </div>
+      </div>
 
-      ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
-    </script>
-  </body>
+      <div class="row">
+        <button class="btn" id="btn-add">إضافة صف</button>
+        <button class="btn btn-outline" id="btn-save">حفظ مسودة (محلي)</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // i18n بسيط
+    const t = {
+      ar: {
+        title:'نموذج التايم شيت', entityCode:'كود الجهة', entityType:'نوع الجهة', entityName:'اسم الجهة',
+        project:'المشروع', activity:'النشاط', grid:'ساعات الأسبوع',
+        sun:'الأحد', mon:'الإثنين', tue:'الثلاثاء', wed:'الأربعاء', thu:'الخميس',
+        comment:'ملاحظة', addRow:'إضافة صف', saveDraft:'حفظ مسودة (محلي)', total:'إجمالي الأسبوع'
+      },
+      en: {
+        title:'Timesheet Mock', entityCode:'Entity Code', entityType:'Entity Type', entityName:'Entity Name',
+        project:'Project', activity:'Activity', grid:'Weekly Hours',
+        sun:'Sun', mon:'Mon', tue:'Tue', wed:'Wed', thu:'Thu',
+        comment:'Comment', addRow:'Add Row', saveDraft:'Save Draft (Local)', total:'Total Week'
+      }
+    };
+    let lang = 'ar';
+
+    const PROJECTS = [
+      'Government Payment System','Payroll','Hyperion','Cash Collection','GOV-POS',
+      'مشروع التحصيل الإلكتروني للمصروفات الجامعية','Core Taxation','E-Receipt','Time Entries'
+    ];
+
+    const el = (id)=>document.getElementById(id);
+    function applyLang(){
+      const L = t[lang];
+      el('title').textContent = L.title;
+      el('l-entityCode').textContent = L.entityCode;
+      el('l-entityType').textContent = L.entityType;
+      el('l-entityName').textContent = L.entityName;
+      el('l-project').textContent = L.project;
+      el('l-activity').textContent = L.activity;
+      el('l-grid').textContent = L.grid;
+      el('h-sun').textContent = L.sun;
+      el('h-mon').textContent = L.mon;
+      el('h-tue').textContent = L.tue;
+      el('h-wed').textContent = L.wed;
+      el('h-thu').textContent = L.thu;
+      el('h-comment').textContent = L.comment;
+      el('btn-add').textContent = L.addRow;
+      el('btn-save').textContent = L.saveDraft;
+      document.documentElement.dir = (lang==='ar'?'rtl':'ltr');
+      document.documentElement.lang = lang;
+      updateTotal();
+    }
+
+    // مشاريع
+    const projectSel = el('project');
+    PROJECTS.forEach(p=>{
+      const o = document.createElement('option'); o.textContent = p; o.value = p; projectSel.appendChild(o);
+    });
+
+    // حساب الإجمالي
+    function updateTotal(){
+      const inputs = document.querySelectorAll('.inp-hours');
+      let sum = 0;
+      inputs.forEach(i => sum += Number(i.value || 0));
+      el('total').textContent = (lang==='ar'?'إجمالي الأسبوع: ':'Total Week: ') + sum;
+    }
+    document.addEventListener('input', (e) => {
+      if (e.target.classList.contains('inp-hours')) updateTotal();
+    });
+
+    // سويتش اللغة
+    el('btn-ar').onclick = ()=>{ lang='ar'; el('btn-ar').classList.add('active'); el('btn-en').classList.remove('active'); applyLang(); };
+    el('btn-en').onclick = ()=>{ lang='en'; el('btn-en').classList.add('active'); el('btn-ar').classList.remove('active'); applyLang(); };
+
+    // إضافة صف
+    el('btn-add').onclick = ()=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><input type="number" min="0" step="0.5" class="inp-hours"/></td>
+        <td><input type="number" min="0" step="0.5" class="inp-hours"/></td>
+        <td><input type="number" min="0" step="0.5" class="inp-hours"/></td>
+        <td><input type="number" min="0" step="0.5" class="inp-hours"/></td>
+        <td><input type="number" min="0" step="0.5" class="inp-hours"/></td>
+        <td><textarea></textarea></td>`;
+      document.getElementById('grid-body').appendChild(tr);
+    };
+
+    // حفظ محلي
+    el('btn-save').onclick = ()=>{
+      const hours = Array.from(document.querySelectorAll('#grid-body tr')).map(tr=>{
+        const nums = tr.querySelectorAll('.inp-hours');
+        return {
+          sun: Number(nums[0].value||0), mon: Number(nums[1].value||0), tue:Number(nums[2].value||0),
+          wed:Number(nums[3].value||0), thu:Number(nums[4].value||0),
+          comment: tr.querySelector('textarea').value||''
+        };
+      });
+      const data = {
+        entityCode: el('entityCode').value,
+        entityType: el('entityType').value,
+        entityName: el('entityName').value,
+        project: projectSel.value,
+        activity: el('activity').value,
+        hours
+      };
+      localStorage.setItem('timesheetDraft', JSON.stringify(data));
+      alert(lang==='ar'?'تم الحفظ محلياً':'Saved locally');
+    };
+
+    // Lookup بسيط من entities.csv إذا وُجد
+    el('entityCode').addEventListener('change', async ()=>{
+      try {
+        const res = await fetch('./entities.csv');
+        if (!res.ok) return;
+        const text = await res.text();
+        const [head, ...rows] = text.split(/\r?\n/).filter(Boolean);
+        const idx = head.split(',').map(h=>h.trim().toLowerCase());
+        const ci = idx.indexOf('code'), ti = idx.indexOf('type'), ni = idx.indexOf('name');
+        const found = rows.map(r=>r.split(',')).find(p => (p[ci]||'').trim() === el('entityCode').value.trim());
+        if (found) { el('entityType').value = (found[ti]||'').trim(); el('entityName').value = (found[ni]||'').trim(); }
+        else { el('entityType').value=''; el('entityName').value=''; }
+      } catch {}
+    });
+
+    applyLang();
+  </script>
+</body>
 </html>
